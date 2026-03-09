@@ -1,0 +1,19 @@
+{
+  "name": "ui-bot-automation",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "help":     "node cli.js --help",
+    "simulate": "node cli.js simulate",
+    "chat":     "node cli.js chat"
+  },
+  "dependencies": {
+    "dotenv-cli": "^11.0.0",
+    "netra-sdk": "^1.0.5",
+    "playwright": "^1.58.2"
+  }
+}
