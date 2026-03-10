@@ -29,6 +29,7 @@ function parseArgs(argv) {
     orgId:        process.env.NETRA_ORG_ID        ?? null,
     endpoint:     process.env.NETRA_OTLP_ENDPOINT ?? null,
     scenarioFile: null,
+    clear:        false,
   };
 
   for (let i = 0; i < args.length; i++) {
@@ -50,6 +51,7 @@ function parseArgs(argv) {
       case '--org-id':        opts.orgId        = args[++i];           break;
       case '--endpoint':      opts.endpoint     = args[++i];           break;
       case '--scenario-file': opts.scenarioFile = resolve(args[++i]); break;
+      case '--clear':         opts.clear        = true;                break;
       default:
         log.warn(`Unknown argument: ${yellow(a)} — run with ${cyan('--help')} for usage`);
     }

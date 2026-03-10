@@ -1,6 +1,63 @@
 import { readFileSync } from 'fs';
 import { log, spinner, bold, green, red, cyan, yellow } from './ui.js';
 
+async function listAllDatasetItems(baseUrl, datasetId, headers) {
+  const items = [];
+  let page = 1;
+  while (true) {
+    const res = await fetch(`${baseUrl}/datasets/${datasetId}/items/list`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ page, limit: 100 }),
+    });
+    const data = await res.json();
+    const batch = data?.data?.datasetItems ?? [];
+    items.push(...batch);
+    if (batch.length === 0) break;
+    page++;
+  }
+  return items;
+}
+
+async function clearDataset(baseUrl, datasetId, headers) {
+  const spin = spinner('Fetching existing dataset items…');
+  let items;
+  try {
+    items = await listAllDatasetItems(baseUrl, datasetId, headers);
+  } catch (err) {
+    spin.fail(`Could not list dataset items: ${err.message}`);
+    throw err;
+  }
+  spin.succeed(`Found ${cyan(items.length)} existing item(s) — deleting…`);
+
+  let deleted = 0;
+  let failed = 0;
+  for (const item of items) {
+    const itemId = item.id;
+    const del = spinner(`Deleting item ${cyan(itemId)}…`);
+    try {
+      const res = await fetch(`${baseUrl}/datasets/${datasetId}/items/${itemId}`, {
+        method: 'DELETE',
+        headers,
+      });
+      if (res.ok) {
+        del.succeed(`Deleted ${cyan(itemId)}`);
+        deleted++;
+      } else {
+        const body = await res.json().catch(() => ({}));
+        del.fail(`Failed to delete ${itemId} (${res.status}): ${JSON.stringify(body?.error ?? body)}`);
+        failed++;
+      }
+    } catch (err) {
+      del.fail(`Error deleting ${itemId}: ${err.message}`);
+      failed++;
+    }
+  }
+
+  log.info(`Cleared: ${green(deleted)} deleted, ${failed > 0 ? red(failed) : failed} failed.`);
+  log.blank();
+}
+
 const DEFAULT_SCENARIOS = [
   {
     scenario:
@@ -35,12 +92,20 @@ async function addDatasetItem(baseUrl, datasetId, headers, scenario) {
       scenario: scenario.scenario,
       max_turns: scenario.max_turns,
       persona: scenario.persona,
-      behaviour_instructions: scenario.behaviour_instructions,
-      evaluatorConfigs: [],
+      behaviour_instructions: "The first message must be 'Hi' by itself. " + scenario.behaviour_instructions,
+      evaluatorConfigs: scenario.evaluatorConfigs || [],
     },
     userData: scenario.userData || {},
     providerConfig: scenario.providerConfig || { provider_id: process.env.PROVIDER_ID, model: 'gpt-5' },
-    evaluators: scenario.evaluators || [],
+    evaluators: scenario.evaluators || [
+      { evaluatorId: '6ab575ce-f30b-4e46-970d-85aabb5f7486' },
+      { evaluatorId: '56645268-2256-493b-984e-1b53eb7989c8' },
+      { evaluatorId: '1680bf7c-a973-400b-9567-e21b9a6c0f1d' },
+      { evaluatorId: 'bbe15050-e5de-499f-ab91-73ac3e9f0443' },
+      { evaluatorId: 'ec3dcdc9-c172-4cb9-8aa9-858f20470550' },
+      { evaluatorId: '819fe207-ba25-404e-9ccd-f5cbe901c570' },
+      { evaluatorId: '635bb73f-28ad-4be2-af87-5a3b131e6793' },
+    ],
   };
 
   const res = await fetch(url, {
@@ -104,6 +169,10 @@ export async function runAddScenarios(opts) {
   log.info(`Dataset ID: ${bold(datasetId)}`);
   log.info(`Scenarios:  ${bold(scenarios.length)}`);
   log.blank();
+
+  if (opts.clear) {
+    await clearDataset(baseUrl, datasetId, headers);
+  }
 
   let added = 0;
   let failed = 0;

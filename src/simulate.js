@@ -66,14 +66,24 @@ export async function runSimulate(opts) {
         throw err;
       }
 
-      const initSpin = spinner(`[${sessionId}] Capturing agent opening message…`);
-      await page.waitForTimeout(5000);
-      const initialBotMessage = await extractLatestBotResponse(page);
+      const initSpin = spinner(`[${sessionId}] Waiting for agent opening message…`);
+      let initialBotMessage = null;
+      const initDeadline = Date.now() + 30000;
+      while (Date.now() < initDeadline) {
+        await page.waitForTimeout(2000);
+        const candidate = await extractLatestBotResponse(page);
+        if (candidate) {
+          initialBotMessage = candidate;
+          break;
+        }
+      }
       if (initialBotMessage) {
         initSpin.succeed(`[${sessionId}] Opening message captured`);
         log.botMsg(initialBotMessage);
       } else {
-        initSpin.fail(`[${sessionId}] No opening message found — proceeding without it`);
+        initSpin.fail(`[${sessionId}] Agent did not send an opening message within 30 s`);
+        await browser.close();
+        throw new Error('Agent did not send an opening message');
       }
       log.blank();
 
@@ -154,7 +164,7 @@ export async function runSimulate(opts) {
       name: opts.name,
       datasetId: opts.datasetId,
       task,
-      maxConcurrency: 1,
+      maxConcurrency: 2
     });
     simSpin.succeed('Simulation complete');
   } catch (err) {
