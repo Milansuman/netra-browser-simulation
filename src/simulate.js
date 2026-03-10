@@ -7,6 +7,7 @@ import {
   findAndSendMessage,
   extractLatestBotResponse,
 } from './browser.js';
+import {randomUUID} from "crypto"
 
 export async function runSimulate(opts) {
   log.blank();
@@ -37,20 +38,7 @@ export async function runSimulate(opts) {
 
   // Launch browser
   const browserSpin = spinner('Launching browser…');
-  const browser = await launchBrowser(opts.headed);
-  const page = await newPage(browser);
-  browserSpin.succeed('Browser launched');
-
-  // Open chatbot
-  const widgetSpin = spinner('Opening Singtel chat widget…');
-  try {
-    await openChatWidget(page, widgetSpin);
-    widgetSpin.succeed('Chat widget ready');
-  } catch (err) {
-    widgetSpin.fail(`Failed to open chat widget: ${err.message}`);
-    await browser.close();
-    process.exit(1);
-  }
+  browserSpin.succeed('Browser ready (instances launched per simulation)');
 
   log.blank();
   log.divider();
@@ -58,19 +46,92 @@ export async function runSimulate(opts) {
   log.divider();
   log.blank();
 
-  // Task executed once per simulation item
+  // Task executed once per simulation item — each sessionId gets its own browser
   class SingtelChatbotTask extends BaseTask {
-    constructor() { super(); }
+    constructor() {
+      super();
+      this._sessions = new Map(); // sessionId → { browser, page, initialBotMessage, firstTurn }
+    }
+
+    async _initSession(sessionId) {
+      const browser = await launchBrowser(opts.headed);
+      const page = await newPage(browser);
+      const widgetSpin = spinner(`[${sessionId}] Opening Singtel chat widget…`);
+      try {
+        await openChatWidget(page, widgetSpin);
+        widgetSpin.succeed(`[${sessionId}] Chat widget ready`);
+      } catch (err) {
+        widgetSpin.fail(`[${sessionId}] Failed to open chat widget: ${err.message}`);
+        await browser.close();
+        throw err;
+      }
+
+      const initSpin = spinner(`[${sessionId}] Capturing agent opening message…`);
+      await page.waitForTimeout(5000);
+      const initialBotMessage = await extractLatestBotResponse(page);
+      if (initialBotMessage) {
+        initSpin.succeed(`[${sessionId}] Opening message captured`);
+        log.botMsg(initialBotMessage);
+      } else {
+        initSpin.fail(`[${sessionId}] No opening message found — proceeding without it`);
+      }
+      log.blank();
+
+      const session = { browser, page, initialBotMessage, firstTurn: true, history: [] };
+      this._sessions.set(sessionId, session);
+      return session;
+    }
+
+    async closeAll() {
+      for (const session of this._sessions.values()) {
+        await session.browser.close().catch(() => {});
+      }
+    }
 
     async run(message, sessionId) {
+      const key = sessionId ?? randomUUID().toString();
+      let session = this._sessions.get(key);
+      if (!session) {
+        session = await this._initSession(key);
+      }
+
+      // On the first turn, return the agent's opening message without sending anything
+      if (session.firstTurn && session.initialBotMessage) {
+        session.firstTurn = false;
+        session.history.push({ role: 'agent', message: session.initialBotMessage });
+        log.info(`[${key}] First turn: returning agent opening message`);
+        log.blank();
+        return { message: session.initialBotMessage, sessionId: key };
+      }
+      session.firstTurn = false;
+
+      // Guard: skip if this exact user message was already sent in this session
+      const alreadySent = session.history.some(e => e.role === 'user' && e.message === message);
+      if (alreadySent) {
+        log.warn(`[${key}] Duplicate message detected, skipping: "${message.substring(0, 60)}"`);
+        const lastAgent = [...session.history].reverse().find(e => e.role === 'agent');
+        return { message: lastAgent?.message ?? '', sessionId: key };
+      }
+
+      session.history.push({ role: 'user', message });
       log.userMsg(message);
-      const sent = await findAndSendMessage(page, message);
+      const sent = await findAndSendMessage(session.page, message);
       if (!sent) throw new Error('Could not locate chatbot input field');
 
       const waitSpin = spinner('Waiting for bot response…');
-      await page.waitForTimeout(10000);
+      const lastAgentMessage = [...session.history].reverse().find(e => e.role === 'agent')?.message ?? null;
 
-      const botResponse = await extractLatestBotResponse(page);
+      // Poll until the bot returns a response that differs from the previous one
+      let botResponse = null;
+      const deadline = Date.now() + 30000;
+      while (Date.now() < deadline) {
+        await session.page.waitForTimeout(2000);
+        const candidate = await extractLatestBotResponse(session.page);
+        if (candidate && candidate !== lastAgentMessage) {
+          botResponse = candidate;
+          break;
+        }
+      }
       if (!botResponse) {
         waitSpin.fail('No response extracted from bot');
         throw new Error('Could not extract bot response');
@@ -79,27 +140,29 @@ export async function runSimulate(opts) {
       log.botMsg(botResponse);
       log.blank();
 
-      return { message: botResponse, sessionId: sessionId ?? 'singtel-session' };
+      session.history.push({ role: 'agent', message: botResponse });
+      return { message: botResponse, sessionId: key };
     }
   }
 
   // Run simulation
   const simSpin = spinner('Running simulation (this may take a while)…');
+  const task = new SingtelChatbotTask();
   let result;
   try {
     result = await Netra.simulation.runSimulation({
       name: opts.name,
       datasetId: opts.datasetId,
-      task: new SingtelChatbotTask(),
+      task,
       maxConcurrency: 1,
     });
     simSpin.succeed('Simulation complete');
   } catch (err) {
     simSpin.fail(`Simulation error: ${err.message}`);
-    await browser.close();
+    await task.closeAll();
     process.exit(1);
   } finally {
-    await browser.close();
+    await task.closeAll();
   }
 
   // Results summary

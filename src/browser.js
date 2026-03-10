@@ -85,7 +85,7 @@ export async function openChatWidget(page, spin) {
   });
 
   spin.update('Waiting for page to settle…');
-  await page.waitForTimeout(10000);
+  await page.waitForTimeout(5000);
 
   // Dismiss cookie banner if present.
   try {
