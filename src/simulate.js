@@ -150,6 +150,8 @@ export async function runSimulate(opts) {
       log.botMsg(botResponse);
       log.blank();
 
+      if(botResponse.length === 0) botResponse = "Agent did not provide a response."
+
       session.history.push({ role: 'agent', message: botResponse });
       return { message: botResponse, sessionId: key };
     }
