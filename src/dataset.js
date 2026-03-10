@@ -39,7 +39,7 @@ async function addDatasetItem(baseUrl, datasetId, headers, scenario) {
       evaluatorConfigs: [],
     },
     userData: scenario.userData || {},
-    providerConfig: scenario.providerConfig || { provider_id: '4b94e9d4-842a-4d40-9260-2af9badd6deb', model: 'gpt-5' },
+    providerConfig: scenario.providerConfig || { provider_id: process.env.PROVIDER_ID, model: 'gpt-5' },
     evaluators: scenario.evaluators || [],
   };
 

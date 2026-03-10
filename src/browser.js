@@ -99,66 +99,9 @@ export async function openChatWidget(page, spin) {
   } catch (_) {}
 
   spin.update('Opening chat widget…');
-  let clicked = false;
-
-  // 1 — text link
-  try {
-    const chatLink = page.getByText(/Live chat|^Chat$/i).first();
-    if (await chatLink.isVisible()) {
-      await chatLink.click();
-      clicked = true;
-    }
-  } catch (_) {}
-
-  // 2 — bottom-right clickable element
-  if (!clicked) {
-    const els = await page
-      .locator('button, a, [role="button"], div[tabindex="0"]')
-      .all();
-    for (const el of els) {
-      try {
-        const box = await el.boundingBox();
-        if (box && box.x > 1100 && box.y > 600) {
-          const text = (await el.textContent()) || '';
-          if (
-            text.toLowerCase().includes('chat') ||
-            text.toLowerCase().includes('live') ||
-            text.length < 30
-          ) {
-            await el.click();
-            clicked = true;
-            break;
-          }
-        }
-      } catch (_) {}
-    }
-  }
-
-  // 3 — LivePerson iframe button
-  if (!clicked) {
-    for (const frame of page.frames()) {
-      try {
-        if (
-          frame.url().includes('liveperson') ||
-          frame.url().includes('lp')
-        ) {
-          const btn = frame
-            .locator('button, [role="button"], a, div[tabindex="0"], img')
-            .first();
-          if ((await btn.count()) > 0 && (await btn.isVisible())) {
-            await btn.click();
-            clicked = true;
-            break;
-          }
-        }
-      } catch (_) {}
-    }
-  }
-
-  // 4 — last resort: click known coordinates
-  if (!clicked) {
-    await page.mouse.click(1220, 720);
-  }
+  const chatBtn = page.locator('.show.fixed-button > .ux-anchor').first();
+  await chatBtn.waitFor({ state: 'visible', timeout: 15000 });
+  await chatBtn.click();
 
   spin.update('Waiting for chat to load…');
   await page.waitForTimeout(8000);
