@@ -9,7 +9,8 @@
   "scripts": {
     "help":     "node cli.js --help",
     "simulate": "node cli.js simulate",
-    "chat":     "node cli.js chat"
+    "chat":     "node cli.js chat",
+    "add-scenarios": "node cli.js add-scenarios"
   },
   "dependencies": {
     "dotenv-cli": "^11.0.0",

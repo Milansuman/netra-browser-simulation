@@ -68,8 +68,9 @@ export function printHelp() {
   log.blank();
 
   console.log(bold('  COMMANDS'));
-  console.log(`    ${yellow('simulate')}    Run Netra simulation against the Singtel chatbot`);
-  console.log(`    ${yellow('chat')}        Run a standalone multi-turn conversation`);
+  console.log(`    ${yellow('simulate')}       Run Netra simulation against the Singtel chatbot`);
+  console.log(`    ${yellow('chat')}           Run a standalone multi-turn conversation`);
+  console.log(`    ${yellow('add-scenarios')}  Add multi-turn simulation scenarios to a Netra dataset`);
   log.blank();
 
   console.log(bold('  GLOBAL OPTIONS'));
@@ -84,9 +85,17 @@ export function printHelp() {
   log.blank();
 
   console.log(bold('  CHAT OPTIONS'));
-  console.log(`    ${green('--message')} ${dim('<text>')}  Add a message ${dim('(repeatable, uses default 8-turn script if omitted)')}`);
-  console.log(`    ${green('--screenshots')} ${dim('<dir>')} Save screenshots to directory`);
-  console.log(`    ${green('--output')} ${dim('<file>')}   Write JSON transcript to file`);
+  console.log(`    ${green('--message')} ${dim('<text>')}        Add a message ${dim('(repeatable, uses default 8-turn script if omitted)')}`);
+  console.log(`    ${green('--screenshots')} ${dim('<dir>')}     Save screenshots to directory`);
+  console.log(`    ${green('--output')} ${dim('<file>')}         Write JSON transcript to file`);
+  log.blank();
+
+  console.log(bold('  ADD-SCENARIOS OPTIONS'));
+  console.log(`    ${green('--dataset-id')} ${dim('<id>')}       Override NETRA_DATASET_ID from .env`);
+  console.log(`    ${green('--auth-token')} ${dim('<token>')}    Override NETRA_AUTH_TOKEN from .env`);
+  console.log(`    ${green('--org-id')} ${dim('<id>')}           Override NETRA_ORG_ID from .env`);
+  console.log(`    ${green('--endpoint')} ${dim('<url>')}        Override NETRA_OTLP_ENDPOINT from .env`);
+  console.log(`    ${green('--scenario-file')} ${dim('<path>')}  JSON file with scenario objects ${dim('(uses built-in defaults if omitted)')}`);
   log.blank();
 
   console.log(bold('  EXAMPLES'));
@@ -101,5 +110,11 @@ export function printHelp() {
   log.blank();
   console.log(`    ${dim('# Default 8-turn script, save screenshots + JSON transcript')}`);
   console.log(`    ${cyan('node cli.js chat --screenshots ./screenshots --output transcript.json')}`);
+  log.blank();
+  console.log(`    ${dim('# Add built-in default scenarios to a dataset')}`);
+  console.log(`    ${cyan('node cli.js add-scenarios')}`);
+  log.blank();
+  console.log(`    ${dim('# Add scenarios from a JSON file')}`);
+  console.log(`    ${cyan('node cli.js add-scenarios --scenario-file ./scenarios.json')}`);
   log.blank();
 }
