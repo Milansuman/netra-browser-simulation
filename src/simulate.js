@@ -145,16 +145,16 @@ export async function runSimulate(opts) {
       }
       if (!botResponse) {
         waitSpin.fail('No response extracted from bot');
-        throw new Error('Could not extract bot response');
+        botResponse = "[Agent did not respond]";
       }
       waitSpin.succeed('Response received');
       log.botMsg(botResponse);
       log.blank();
 
-      if(botResponse.length === 0) botResponse = "Agent did not provide a response."
+      if(botResponse.length === 0) botResponse = "[Agent did not provide a response.]"
 
-      session.history.push({ role: 'agent', message: botResponse });
-      return { message: botResponse, sessionId: key };
+      session.history.push({ role: 'agent', message: botResponse ?? "[Agent did not provide a response.]" });
+      return { message: botResponse ?? "[Agent did not provide a response.]", sessionId: key };
     }
   }
 
