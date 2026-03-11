@@ -125,26 +125,6 @@ This evaluator checks the conversation for contradictions, fabrications, or impr
 
 ---
 
-### Profile Utilization
-**Measures how effectively the assistant used available user profile information.**
-
-This evaluator determines whether relevant user data was correctly identified and applied to move the conversation forward. The score reflects appropriate and timely use of profile context.
-
-**Inputs**
-- **Human Info** – User data provided when creating the scenario  
-- **Conversation** – Conversation array from the test run  
-
-**Output**
-- **Score (0–1):** Effectiveness of profile usage  
-- **Reason:** Explanation of effective or missed use of profile information  
-
-**Limitations**
-- Does not assess whether the profile data itself is accurate or complete  
-- Does not penalize the assistant when profile information is not applicable  
-
-
----
-
 ### Information Elicitation
 **Measures how well the assistant gathered the information needed to proceed.**
 

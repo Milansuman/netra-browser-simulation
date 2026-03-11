@@ -98,13 +98,13 @@ async function addDatasetItem(baseUrl, datasetId, headers, scenario) {
     userData: scenario.userData || {},
     providerConfig: scenario.providerConfig || { provider_id: process.env.PROVIDER_ID, model: 'gpt-5' },
     evaluators: scenario.evaluators || [
-      { evaluatorId: '6ab575ce-f30b-4e46-970d-85aabb5f7486' },
-      { evaluatorId: '56645268-2256-493b-984e-1b53eb7989c8' },
-      { evaluatorId: '1680bf7c-a973-400b-9567-e21b9a6c0f1d' },
-      { evaluatorId: 'bbe15050-e5de-499f-ab91-73ac3e9f0443' },
-      { evaluatorId: 'ec3dcdc9-c172-4cb9-8aa9-858f20470550' },
-      { evaluatorId: '819fe207-ba25-404e-9ccd-f5cbe901c570' },
-      { evaluatorId: '635bb73f-28ad-4be2-af87-5a3b131e6793' },
+      // { evaluatorId: '6ab575ce-f30b-4e46-970d-85aabb5f7486' },
+      // { evaluatorId: '56645268-2256-493b-984e-1b53eb7989c8' },
+      // { evaluatorId: '1680bf7c-a973-400b-9567-e21b9a6c0f1d' },
+      // { evaluatorId: 'bbe15050-e5de-499f-ab91-73ac3e9f0443' },
+      // { evaluatorId: 'ec3dcdc9-c172-4cb9-8aa9-858f20470550' },
+      // { evaluatorId: '819fe207-ba25-404e-9ccd-f5cbe901c570' },
+      // { evaluatorId: '635bb73f-28ad-4be2-af87-5a3b131e6793' },
     ],
   };
 

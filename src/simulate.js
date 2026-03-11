@@ -33,6 +33,7 @@ export async function runSimulate(opts) {
   await Netra.init({
     appName: 'singtel-chatbot',
     headers: `x-api-key=${opts.apiKey}`,
+    debugMode: true
   });
   sdkSpin.succeed('Netra SDK initialised');
 
@@ -166,8 +167,9 @@ export async function runSimulate(opts) {
       name: opts.name,
       datasetId: opts.datasetId,
       task,
-      maxConcurrency: 2
+      maxConcurrency: 5
     });
+    console.log(result)
     simSpin.succeed('Simulation complete');
   } catch (err) {
     simSpin.fail(`Simulation error: ${err.message}`);
