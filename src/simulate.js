@@ -134,7 +134,7 @@ export async function runSimulate(opts) {
 
       // Poll until the bot returns a response that differs from the previous one
       let botResponse = null;
-      const deadline = Date.now() + 30000;
+      const deadline = Date.now() + 1000 * 60 * 5;
       while (Date.now() < deadline) {
         await session.page.waitForTimeout(2000);
         const candidate = await extractLatestBotResponse(session.page);

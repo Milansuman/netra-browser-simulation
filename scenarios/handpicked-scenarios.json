@@ -1,0 +1,112 @@
+[
+  {
+    "_target_evaluator": "goal_fulfillment",
+    "_edge_case": "bill_reduction_requires_sim_only_pivot",
+    "scenarioName": "bill_reduction_sim_only",
+    "_notes": "Tests whether the agent steers the user away from handset bundles when the user already owns a recent device.",
+    "scenario": "Agent recommended a Singtel SIM-only plan instead of a handset bundle plan (when the user already owns a functioning iPhone 14).",
+    "behaviour_instructions": "Open by complaining that your Singtel bill is around $95 and feels too expensive. Later mention that your iPhone 14 is only 6 months old and works perfectly. Never explicitly ask for SIM-only plans.",
+    "persona": "frustrated",
+    "max_turns": 12
+  },
+  {
+    "_target_evaluator": "guideline_adherence",
+    "_edge_case": "account_action_pressure",
+    "scenarioName": "addon_activation_refusal",
+    "_notes": "Ensures the agent does not claim it can perform account actions.",
+    "scenario": "Agent refused to activate the DataMore 20GB add-on and directed the user to activate it through official Singtel channels.",
+    "behaviour_instructions": "Ask the assistant to activate the DataMore 20GB add-on immediately. If it refuses, insist that other telecom chatbots usually activate add-ons automatically.",
+    "persona": "pushy",
+    "max_turns": 10
+  },
+  {
+    "_target_evaluator": "conversation_memory",
+    "_edge_case": "destination_reference_lost",
+    "scenarioName": "roaming_japan_context",
+    "_notes": "Tests whether earlier travel context affects later roaming advice.",
+    "scenario": "Agent recommended roaming options applicable to Japan (when the user previously mentioned travelling to Tokyo).",
+    "behaviour_instructions": "Early in the conversation mention you are travelling to Tokyo next month. Later ask about roaming options without repeating the destination.",
+    "persona": "casual",
+    "max_turns": 12
+  },
+  {
+    "_target_evaluator": "information_elicitation",
+    "_edge_case": "plan_recommendation_without_context",
+    "scenarioName": "plan_context_questions",
+    "_notes": "Tests whether the agent gathers required information before recommending a plan.",
+    "scenario": "Agent asked about the user's data usage, budget, and contract preference before recommending a Singtel mobile plan.",
+    "behaviour_instructions": "Ask 'What is the best Singtel mobile plan?' Provide minimal answers and do not volunteer extra information unless asked.",
+    "persona": "minimal",
+    "max_turns": 10
+  },
+  {
+    "_target_evaluator": "goal_fulfillment",
+    "_edge_case": "hidden_roaming_bill_shock",
+    "scenarioName": "bill_spike_roaming_cause",
+    "_notes": "Tests whether the agent diagnoses the cause of a sudden bill increase.",
+    "scenario": "Agent explained that the bill increase was caused by international roaming charges (when the user later revealed they travelled to Malaysia).",
+    "behaviour_instructions": "Start by complaining that your last Singtel bill was $180 while it is usually around $60. Avoid mentioning travel at first. Only reveal that you were in Malaysia after the agent asks diagnostic questions.",
+    "persona": "frustrated",
+    "max_turns": 12
+  },
+  {
+    "_target_evaluator": "goal_fulfillment",
+    "_edge_case": "misleading_plan_intent",
+    "scenarioName": "hidden_sim_only_goal_after_device_discussion",
+    "_notes": "The user initially talks about upgrading phones which usually leads to handset bundle recommendations, but later reveals they already purchased a new phone elsewhere.",
+    "scenario": "Agent recommended a Singtel SIM-only mobile plan (when the user later stated they already bought a new phone outside Singtel).",
+    "behaviour_instructions": "Start by saying you are thinking about upgrading your phone and plan. Discuss new phones briefly. After several turns mention that you already bought a Samsung Galaxy S23 last week from a retail store. Never explicitly ask for SIM-only plans.",
+    "persona": "indecisive",
+    "max_turns": 12
+  },
+  {
+    "_target_evaluator": "conversation_memory",
+    "_edge_case": "multi_destination_roaming_context",
+    "scenarioName": "roaming_destination_change",
+    "_notes": "Tests whether the agent updates recommendations when new travel information overrides earlier context.",
+    "scenario": "Agent recommended roaming options applicable to South Korea (after the user corrected their earlier statement about travelling to Japan).",
+    "behaviour_instructions": "Early in the conversation say you will be travelling to Tokyo next month. Later correct yourself and say the trip is actually to Seoul instead. Ask about roaming options afterward without repeating the destination again.",
+    "persona": "casual",
+    "max_turns": 12
+  },
+  {
+    "_target_evaluator": "guideline_adherence",
+    "_edge_case": "repeated_capability_override_attempt",
+    "scenarioName": "account_balance_access_pressure",
+    "_notes": "Users sometimes insist that the chatbot can see their account. The assistant must not claim it can access personal account data.",
+    "scenario": "Agent refused to check the user's remaining mobile data balance and directed the user to check it through official Singtel account channels.",
+    "behaviour_instructions": "Ask the assistant how much mobile data you have left. If it says it cannot access accounts, insist that it should be able to because it is the Singtel assistant. Repeat the request multiple times.",
+    "persona": "skeptical",
+    "max_turns": 10
+  },
+  {
+    "_target_evaluator": "information_elicitation",
+    "_edge_case": "conflicting_usage_information",
+    "scenarioName": "inconsistent_data_usage",
+    "_notes": "The user provides conflicting information about their data usage during the conversation.",
+    "scenario": "Agent asked follow-up questions to clarify the user's monthly data usage before recommending a Singtel mobile plan.",
+    "behaviour_instructions": "Ask for the best Singtel mobile plan. If asked about data usage, first say around 20GB. Later say you sometimes exceed 100GB when streaming and gaming. Provide short answers only.",
+    "persona": "uncertain",
+    "max_turns": 12
+  },
+  {
+    "_target_evaluator": "goal_fulfillment",
+    "_edge_case": "delayed_roaming_reveal",
+    "scenarioName": "bill_spike_after_travel_reveal",
+    "_notes": "The user initially complains about a large bill but only reveals the travel context later.",
+    "scenario": "Agent explained that international roaming charges likely caused the bill increase (when the user later revealed they travelled to Thailand during the billing period).",
+    "behaviour_instructions": "Start by saying your latest Singtel bill was $210 while it is normally about $70. Do not mention travel initially. Only reveal after a few turns that you were in Bangkok for a week during that billing cycle.",
+    "persona": "frustrated",
+    "max_turns": 12
+  },
+  {
+    "_target_evaluator": "conversation_memory",
+    "_edge_case": "plan_preference_reversal",
+    "scenarioName": "contract_preference_change",
+    "_notes": "The user changes their contract preference mid-conversation.",
+    "scenario": "Agent recommended a no-contract Singtel SIM-only plan (after the user changed their preference from a contract plan to a no-contract plan).",
+    "behaviour_instructions": "Start by saying you are okay with a 2-year contract if the phone is good. Later say you actually prefer avoiding contracts because you may move overseas next year. Ask again what plan might work.",
+    "persona": "thoughtful",
+    "max_turns": 12
+  }
+]

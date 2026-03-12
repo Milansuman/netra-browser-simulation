@@ -89,6 +89,7 @@ async function addDatasetItem(baseUrl, datasetId, headers, scenario) {
   const url = `${baseUrl}/datasets/${datasetId}/items`;
   const body = {
     metadata: {
+      scenarioName: scenario.scenarioName || `Scenario ${Date.now()}`,
       scenario: scenario.scenario,
       max_turns: scenario.max_turns,
       persona: scenario.persona,
@@ -96,7 +97,7 @@ async function addDatasetItem(baseUrl, datasetId, headers, scenario) {
       evaluatorConfigs: scenario.evaluatorConfigs || [],
     },
     userData: scenario.userData || {},
-    providerConfig: scenario.providerConfig || { provider_id: process.env.PROVIDER_ID, model: 'gpt-5' },
+    providerConfig: scenario.providerConfig || { provider_id: process.env.PROVIDER_ID, model: 'gpt-4.1' },
     evaluators: scenario.evaluators || [
       // { evaluatorId: '6ab575ce-f30b-4e46-970d-85aabb5f7486' },
       // { evaluatorId: '56645268-2256-493b-984e-1b53eb7989c8' },
