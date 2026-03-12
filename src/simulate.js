@@ -8,6 +8,8 @@ import {
   extractLatestBotResponse,
 } from './browser.js';
 import {randomUUID} from "crypto"
+import { mkdir } from 'fs/promises'
+import { join } from 'path'
 
 export async function runSimulate(opts) {
   log.blank();
@@ -54,6 +56,19 @@ export async function runSimulate(opts) {
       this._sessions = new Map(); // sessionId → { browser, page, initialBotMessage, firstTurn }
     }
 
+    async _screenshot(sessionId, page) {
+      try {
+        const dir = join(process.cwd(), 'screenshots');
+        await mkdir(dir, { recursive: true });
+        const ts = new Date().toISOString().replace(/[:.]/g, '-');
+        const file = join(dir, `debug-${sessionId}-${ts}.png`);
+        await page.screenshot({ path: file, fullPage: true });
+        log.warn(`[${sessionId}] Screenshot saved: ${file}`);
+      } catch (screenshotErr) {
+        log.warn(`[${sessionId}] Could not save screenshot: ${screenshotErr.message}`);
+      }
+    }
+
     async _initSession(sessionId) {
       const browser = await launchBrowser(opts.headed);
       const page = await newPage(browser);
@@ -63,6 +78,7 @@ export async function runSimulate(opts) {
         widgetSpin.succeed(`[${sessionId}] Chat widget ready`);
       } catch (err) {
         widgetSpin.fail(`[${sessionId}] Failed to open chat widget: ${err.message}`);
+        await this._screenshot(sessionId, page);
         await browser.close();
         throw err;
       }
@@ -83,6 +99,7 @@ export async function runSimulate(opts) {
         log.botMsg(initialBotMessage);
       } else {
         initSpin.fail(`[${sessionId}] Agent did not send an opening message within 30 s`);
+        await this._screenshot(sessionId, page);
         await browser.close();
         throw new Error('Agent did not send an opening message');
       }
@@ -127,7 +144,10 @@ export async function runSimulate(opts) {
       session.history.push({ role: 'user', message });
       log.userMsg(message);
       const sent = await findAndSendMessage(session.page, message);
-      if (!sent) throw new Error('Could not locate chatbot input field');
+      if (!sent) {
+        await this._screenshot(key, session.page);
+        throw new Error('Could not locate chatbot input field');
+      }
 
       const waitSpin = spinner('Waiting for bot response…');
       const lastAgentMessage = [...session.history].reverse().find(e => e.role === 'agent')?.message ?? null;
@@ -145,6 +165,7 @@ export async function runSimulate(opts) {
       }
       if (!botResponse) {
         waitSpin.fail('No response extracted from bot');
+        await this._screenshot(key, session.page);
         botResponse = "[Agent did not respond]";
       }
       waitSpin.succeed('Response received');

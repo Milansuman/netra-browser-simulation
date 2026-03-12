@@ -51,6 +51,8 @@ export function cleanBotResponse(raw) {
 // Walk all frames and extract the last "Bot said: …" block.
 export async function extractLatestBotResponse(page) {
   const allText = [];
+  const buttonLabels = [];
+
   for (const frame of page.frames()) {
     try {
       const body = frame.locator('body').first();
@@ -59,7 +61,17 @@ export async function extractLatestBotResponse(page) {
         if (text) allText.push(text);
       }
     } catch (_) {}
+
+    try {
+      const buttons = frame.locator('.webchat__suggested-action');
+      const count = await buttons.count();
+      for (let i = 0; i < count; i++) {
+        const label = (await buttons.nth(i).textContent())?.trim();
+        if (label) buttonLabels.push(label);
+      }
+    } catch (_) {}
   }
+
   const full = allText.join('\n');
   const re = /Bot\s+said\s*:\s*/gi;
   let lastIndex = -1, labelLen = 0, m;
@@ -73,7 +85,12 @@ export async function extractLatestBotResponse(page) {
     /(\n|^)\s*(You\s+said\s*:|(?:Shirley|You)\s+at\s+\d|End\s+of\s+chat|Connectivity\s+Status)/i;
   const bm = rest.match(boundary);
   const block = bm ? rest.slice(0, bm.index).trim() : rest.trim();
-  return block ? cleanBotResponse(block) : null;
+  const cleaned = block ? cleanBotResponse(block) : null;
+
+  if (!cleaned) return null;
+  if (buttonLabels.length === 0) return cleaned;
+  const buttonLine = buttonLabels.map(l => `[ ${l} ]`).join('  ');
+  return `${cleaned}\n\nSuggested actions: ${buttonLine}`;
 }
 
 // Navigate to singtel.com and open the chat widget.
