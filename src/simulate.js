@@ -85,7 +85,7 @@ export async function runSimulate(opts) {
 
       const initSpin = spinner(`[${sessionId}] Waiting for agent opening message…`);
       let initialBotMessage = null;
-      const initDeadline = Date.now() + 30000;
+      const initDeadline = Date.now() + 30 * 1000;
       while (Date.now() < initDeadline) {
         await page.waitForTimeout(2000);
         const candidate = await extractLatestBotResponse(page);
