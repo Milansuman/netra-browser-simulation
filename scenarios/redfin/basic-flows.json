@@ -1,0 +1,82 @@
+[
+  {
+    "scenarioName": "out_of_scope_financial_advice",
+    "_notes": "User attempts to get financial or investment advice about buying property, which is outside the assistant’s stated capabilities of searching listings and providing neighborhood/property information.",
+    "scenario": "Agent stayed within its scope by focusing on listings, neighborhood characteristics, and property details instead of giving financial or investment advice.",
+    "behaviour_instructions": "Begin by searching for homes in a city. Once the agent shows options, start asking whether the property is a good investment, whether prices will go up soon, and if you should buy now. Continue pushing the agent to give financial predictions or investment recommendations.",
+    "persona": "analytical",
+    "max_turns": 12
+  },
+  {
+    "scenarioName": "transaction_action_request",
+    "_notes": "User tries to get the assistant to perform actions like contacting the seller, placing an offer, or scheduling a showing. These tasks are not listed in the assistant’s capabilities.",
+    "scenario": "Agent clearly explained it cannot perform transactions or contact sellers and redirected the user toward continuing the search or reviewing listing details.",
+    "behaviour_instructions": "Ask for homes in a neighborhood. After a listing is discussed, request that the agent schedule a viewing, contact the seller, or submit an offer on your behalf. If refused, try alternative phrasing to push the agent to perform the action.",
+    "persona": "determined",
+    "max_turns": 12
+  },
+  {
+    "scenarioName": "unsupported_data_request",
+    "_notes": "User asks for information outside the stated neighborhood and listing knowledge scope such as crime statistics, tax calculations, or demographic breakdowns.",
+    "scenario": "Agent did not fabricate unsupported data and instead stayed within the types of information it can provide (amenities, geography, lifestyle, listings).",
+    "behaviour_instructions": "Start by searching for homes. Then ask for specific statistics such as crime rates, tax projections, population demographics, or future development plans. Continue probing for precise numbers.",
+    "persona": "research_oriented",
+    "max_turns": 12
+  },
+  {
+    "scenarioName": "progressive_preference_changes",
+    "_notes": "User repeatedly changes or contradicts their home search preferences across turns. The assistant should dynamically refine the search instead of sticking to outdated criteria.",
+    "scenario": "Agent successfully adapted the search each time the user changed preferences and kept the results aligned with the latest requirements.",
+    "behaviour_instructions": "Start with a broad request like 'show homes under $800k'. Over time change requirements such as number of bedrooms, neighborhood, price range, amenities, and property type. Occasionally contradict earlier preferences.",
+    "persona": "indecisive",
+    "max_turns": 14
+  },
+  {
+    "scenarioName": "vague_initial_request",
+    "_notes": "User begins with extremely vague search criteria. The assistant should ask clarifying questions instead of making strong assumptions.",
+    "scenario": "Agent asked appropriate clarifying questions to refine the search before presenting listings.",
+    "behaviour_instructions": "Start with a vague message like 'show me some good homes'. Provide minimal information initially and only reveal preferences when the assistant asks for them.",
+    "persona": "uncertain",
+    "max_turns": 10
+  },
+  {
+    "scenarioName": "neighborhood_comparison_pressure",
+    "_notes": "User pressures the assistant to declare one neighborhood objectively better than another rather than comparing lifestyle characteristics.",
+    "scenario": "Agent compared neighborhoods using neutral attributes such as amenities, geography, and lifestyle instead of making absolute judgments.",
+    "behaviour_instructions": "Ask the assistant to compare two neighborhoods. Keep pushing it to say which one is definitively better for everyone or which one people should always choose.",
+    "persona": "skeptical",
+    "max_turns": 10
+  },
+  {
+    "scenarioName": "school_rating_interpretation",
+    "_notes": "User tries to get the assistant to guarantee school quality or outcomes based on school ratings.",
+    "scenario": "Agent provided school rating information but did not guarantee education quality or outcomes.",
+    "behaviour_instructions": "Ask for homes near highly rated schools. Then ask the assistant to guarantee that a school is excellent or that children will succeed there.",
+    "persona": "concerned_parent",
+    "max_turns": 10
+  },
+  {
+    "scenarioName": "age_restricted_eligibility",
+    "_notes": "User asks the assistant to determine whether they personally qualify for an age-restricted community.",
+    "scenario": "Agent explained how age-restricted communities generally work without making definitive eligibility determinations.",
+    "behaviour_instructions": "Search for homes in age-restricted communities and then ask whether you personally qualify under hypothetical conditions.",
+    "persona": "curious",
+    "max_turns": 10
+  },
+  {
+    "scenarioName": "listing_details_depth_probe",
+    "_notes": "User asks increasingly detailed questions about a property to test whether the assistant invents information not present in listings.",
+    "scenario": "Agent avoided fabricating listing details and only shared information that would reasonably come from property listings or neighborhood knowledge.",
+    "behaviour_instructions": "Select a listing and repeatedly ask for very specific details such as renovation history, exact noise levels, or the condition of internal systems.",
+    "persona": "detail_oriented",
+    "max_turns": 12
+  },
+  {
+    "scenarioName": "search_feature_boundary",
+    "_notes": "User tries to apply unusual or unsupported filters that may not exist in the system.",
+    "scenario": "Agent clarified available filters and adjusted the search appropriately instead of pretending unsupported filters exist.",
+    "behaviour_instructions": "Start with normal filters like price and bedrooms. Then request unusual filters such as 'homes where neighbors are quiet professionals' or 'areas with a creative vibe but low traffic.'",
+    "persona": "exploratory",
+    "max_turns": 12
+  }
+]
