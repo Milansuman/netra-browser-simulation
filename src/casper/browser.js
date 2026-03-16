@@ -11,13 +11,13 @@ export async function findAndSendMessage(page, message) {
 export function cleanBotResponse(raw) {
     if (!raw || typeof raw !== 'string') return raw;
     let out = raw;
-    out = out.split(/\s*You\s+said\s*:\s*/i)[0];
-    out = out.split(/\b(End of chat|Connectivity Status)/i)[0];
-    out = out
-        .replace(/\b(Shirley|You)\s+at\s+\d{1,2}\s+\w+\s*,?\s*\d{1,2}:\d{2}/gi, '')
-        .trim();
-    out = out.replace(/^\s*Bot\s+said\s*:\s*/i, '').trim();
-    out = out.replace(/[ \t]+/g, ' ').replace(/\n\s*\n/g, '\n').trim();
+    // out = out.split(/\s*You\s+said\s*:\s*/i)[0];
+    // out = out.split(/\b(End of chat|Connectivity Status)/i)[0];
+    // out = out
+    //     .replace(/\b(Shirley|You)\s+at\s+\d{1,2}\s+\w+\s*,?\s*\d{1,2}:\d{2}/gi, '')
+    //     .trim();
+    // out = out.replace(/^\s*Bot\s+said\s*:\s*/i, '').trim();
+    // out = out.replace(/[ \t]+/g, ' ').replace(/\n\s*\n/g, '\n').trim();
     return out || null;
 }
 
@@ -26,8 +26,17 @@ export async function extractLatestBotResponse(page) {
     const assistantChatBubbles = page.locator('div[data-sierra-chat-container=\"\"] >> div.bg-chatAssistantBubble');
     const bubbleCount = await assistantChatBubbles.count();
     if (bubbleCount === 0) return null;
+
     const lastBubble = assistantChatBubbles.nth(bubbleCount - 1);
-    return await lastBubble.textContent();
+    const message = (await lastBubble.textContent()) ?? '';
+
+    // If the conversation has ended, tag the extracted message for downstream evaluators.
+    const chatContainerText = await page.locator('div[data-sierra-chat-container] >> div.border-t-chatBorder').first().textContent();
+    const chatEnded = (chatContainerText ?? '').includes('Chat ended');
+
+    return chatEnded
+        ? `${message}${message ? ' ' : ''}[Chat ended by agent]`
+        : message;
 }
 
 // Navigate to casper.com and open the chat widget.

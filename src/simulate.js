@@ -200,7 +200,7 @@ export async function runSimulate(opts) {
       name: opts.name,
       datasetId: opts.datasetId,
       task,
-      maxConcurrency: 1,
+      maxConcurrency: 5,
     });
     console.log(result);
     simSpin.succeed('Simulation complete');
