@@ -2,11 +2,13 @@ import { validateBrowserAdapter } from './interface.js';
 import { singtelBrowserAdapter } from '../singtel/adapter.js';
 import { casperBrowserAdapter } from '../casper/adapter.js';
 import { redfinBrowserAdapter } from '../redfin/adapter.js';
+import { clearBrowserAdapter } from '../clearme/adapter.js';
 
 const ADAPTERS = {
     singtel: singtelBrowserAdapter,
     casper: casperBrowserAdapter,
     redfin: redfinBrowserAdapter,
+    clear: clearBrowserAdapter,
 };
 
 export function listSupportedAgents() {
