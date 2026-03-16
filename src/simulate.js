@@ -1,17 +1,27 @@
 import { Netra, BaseTask } from 'netra-sdk';
-import { log, spinner, bold, green, red, cyan, yellow } from './ui.js';
-import {
-  launchBrowser,
-  newPage,
-  openChatWidget,
-  findAndSendMessage,
-  extractLatestBotResponse,
-} from './browser.js';
-import {randomUUID} from "crypto"
-import { mkdir } from 'fs/promises'
-import { join } from 'path'
+import { log, spinner, bold, green, red, cyan } from './ui.js';
+import { randomUUID } from 'crypto';
+import { mkdir } from 'fs/promises';
+import { join } from 'path';
+import { launchBrowser, newPage } from './core/browser.js';
+import { resolveBrowserAdapter } from './adapters/index.js';
+import { DEFAULT_ADAPTER_CONFIG } from './adapters/interface.js';
 
 export async function runSimulate(opts) {
+  let adapter;
+  try {
+    adapter = resolveBrowserAdapter(opts.agent);
+  } catch (err) {
+    log.error(err.message);
+    process.exit(1);
+  }
+
+  const agentLabel = adapter.name || adapter.id || opts.agent || 'agent';
+  const adapterConfig = {
+    ...DEFAULT_ADAPTER_CONFIG,
+    ...(adapter.config || {}),
+  };
+
   log.blank();
   console.log(bold('  ▶  Netra Simulation'));
   log.blank();
@@ -26,6 +36,7 @@ export async function runSimulate(opts) {
   }
 
   log.info(`Run name:   ${bold(opts.name)}`);
+  log.info(`Agent:      ${bold(agentLabel)}`);
   log.info(`Dataset ID: ${bold(opts.datasetId)}`);
   log.info(`Browser:    ${bold(opts.headed ? 'headed (visible)' : 'headless')}`);
   log.blank();
@@ -33,9 +44,9 @@ export async function runSimulate(opts) {
   // Initialise SDK
   const sdkSpin = spinner('Initialising Netra SDK…');
   await Netra.init({
-    appName: 'singtel-chatbot',
+    appName: `${adapter.id || 'chatbot'}-chatbot`,
     headers: `x-api-key=${opts.apiKey}`,
-    debugMode: true
+    debugMode: true,
   });
   sdkSpin.succeed('Netra SDK initialised');
 
@@ -50,7 +61,7 @@ export async function runSimulate(opts) {
   log.blank();
 
   // Task executed once per simulation item — each sessionId gets its own browser
-  class SingtelChatbotTask extends BaseTask {
+  class SimulationTask extends BaseTask {
     constructor() {
       super();
       this._sessions = new Map(); // sessionId → { browser, page, initialBotMessage, firstTurn }
@@ -72,9 +83,9 @@ export async function runSimulate(opts) {
     async _initSession(sessionId) {
       const browser = await launchBrowser(opts.headed);
       const page = await newPage(browser);
-      const widgetSpin = spinner(`[${sessionId}] Opening Singtel chat widget…`);
+      const widgetSpin = spinner(`[${sessionId}] Opening ${agentLabel} chat widget...`);
       try {
-        await openChatWidget(page, widgetSpin);
+        await adapter.openChatWidget(page, widgetSpin);
         widgetSpin.succeed(`[${sessionId}] Chat widget ready`);
       } catch (err) {
         widgetSpin.fail(`[${sessionId}] Failed to open chat widget: ${err.message}`);
@@ -85,10 +96,10 @@ export async function runSimulate(opts) {
 
       const initSpin = spinner(`[${sessionId}] Waiting for agent opening message…`);
       let initialBotMessage = null;
-      const initDeadline = Date.now() + 30 * 1000;
+      const initDeadline = Date.now() + adapterConfig.initialMessageTimeoutMs;
       while (Date.now() < initDeadline) {
-        await page.waitForTimeout(2000);
-        const candidate = await extractLatestBotResponse(page);
+        await page.waitForTimeout(adapterConfig.responsePollIntervalMs);
+        const candidate = await adapter.extractLatestBotResponse(page);
         if (candidate) {
           initialBotMessage = candidate;
           break;
@@ -98,7 +109,8 @@ export async function runSimulate(opts) {
         initSpin.succeed(`[${sessionId}] Opening message captured`);
         log.botMsg(initialBotMessage);
       } else {
-        initSpin.fail(`[${sessionId}] Agent did not send an opening message within 30 s`);
+        const seconds = Math.round(adapterConfig.initialMessageTimeoutMs / 1000);
+        initSpin.fail(`[${sessionId}] Agent did not send an opening message within ${seconds} s`);
         await this._screenshot(sessionId, page);
         await browser.close();
         throw new Error('Agent did not send an opening message');
@@ -143,7 +155,7 @@ export async function runSimulate(opts) {
 
       session.history.push({ role: 'user', message });
       log.userMsg(message);
-      const sent = await findAndSendMessage(session.page, message);
+      const sent = await adapter.sendMessage(session.page, message);
       if (!sent) {
         await this._screenshot(key, session.page);
         throw new Error('Could not locate chatbot input field');
@@ -154,10 +166,10 @@ export async function runSimulate(opts) {
 
       // Poll until the bot returns a response that differs from the previous one
       let botResponse = null;
-      const deadline = Date.now() + 1000 * 60 * 5;
+      const deadline = Date.now() + adapterConfig.responseTimeoutMs;
       while (Date.now() < deadline) {
-        await session.page.waitForTimeout(2000);
-        const candidate = await extractLatestBotResponse(session.page);
+        await session.page.waitForTimeout(adapterConfig.responsePollIntervalMs);
+        const candidate = await adapter.extractLatestBotResponse(session.page);
         if (candidate && candidate !== lastAgentMessage) {
           botResponse = candidate;
           break;
@@ -172,25 +184,25 @@ export async function runSimulate(opts) {
       log.botMsg(botResponse);
       log.blank();
 
-      if(botResponse.length === 0) botResponse = "[Agent did not provide a response.]"
+      if (botResponse.length === 0) botResponse = '[Agent did not provide a response.]';
 
-      session.history.push({ role: 'agent', message: botResponse ?? "[Agent did not provide a response.]" });
-      return { message: botResponse ?? "[Agent did not provide a response.]", sessionId: key };
+      session.history.push({ role: 'agent', message: botResponse ?? '[Agent did not provide a response.]' });
+      return { message: botResponse ?? '[Agent did not provide a response.]', sessionId: key };
     }
   }
 
   // Run simulation
   const simSpin = spinner('Running simulation (this may take a while)…');
-  const task = new SingtelChatbotTask();
+  const task = new SimulationTask();
   let result;
   try {
     result = await Netra.simulation.runSimulation({
       name: opts.name,
       datasetId: opts.datasetId,
       task,
-      maxConcurrency: 5
+      maxConcurrency: 5,
     });
-    console.log(result)
+    console.log(result);
     simSpin.succeed('Simulation complete');
   } catch (err) {
     simSpin.fail(`Simulation error: ${err.message}`);

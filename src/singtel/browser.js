@@ -1,0 +1,108 @@
+// Try every frame for an input field; fill and submit.
+export async function findAndSendMessage(page, message) {
+  for (const frame of page.frames()) {
+    try {
+      const input = frame
+        .locator('input[type="text"], textarea, [contenteditable="true"]')
+        .first();
+      if ((await input.count()) > 0 && (await input.isVisible())) {
+        await input.fill(message);
+        await input.press('Enter');
+        return true;
+      }
+    } catch (_) {}
+  }
+  return false;
+}
+
+// Strip noise around the bot's last reply and return clean text.
+export function cleanBotResponse(raw) {
+  if (!raw || typeof raw !== 'string') return raw;
+  let out = raw;
+  out = out.split(/\s*You\s+said\s*:\s*/i)[0];
+  out = out.split(/\b(End of chat|Connectivity Status)/i)[0];
+  out = out
+    .replace(/\b(Shirley|You)\s+at\s+\d{1,2}\s+\w+\s*,?\s*\d{1,2}:\d{2}/gi, '')
+    .trim();
+  out = out.replace(/^\s*Bot\s+said\s*:\s*/i, '').trim();
+  out = out.replace(/[ \t]+/g, ' ').replace(/\n\s*\n/g, '\n').trim();
+  return out || null;
+}
+
+// Walk all frames and extract the last "Bot said: ..." block.
+export async function extractLatestBotResponse(page) {
+  const allText = [];
+  const buttonLabels = [];
+
+  for (const frame of page.frames()) {
+    try {
+      const body = frame.locator('body').first();
+      if ((await body.count()) > 0) {
+        const text = await body.textContent();
+        if (text) allText.push(text);
+      }
+    } catch (_) {}
+
+    try {
+      const buttons = frame.locator('.webchat__suggested-action');
+      const count = await buttons.count();
+      for (let i = 0; i < count; i++) {
+        const label = (await buttons.nth(i).textContent())?.trim();
+        if (label) buttonLabels.push(label);
+      }
+    } catch (_) {}
+  }
+
+  const full = allText.join('\n');
+  const re = /Bot\s+said\s*:\s*/gi;
+  let lastIndex = -1;
+  let labelLen = 0;
+  let m;
+  while ((m = re.exec(full)) !== null) {
+    lastIndex = m.index;
+    labelLen = m[0].length;
+  }
+  if (lastIndex === -1) return null;
+  const rest = full.slice(lastIndex + labelLen);
+  const boundary =
+    /(\n|^)\s*(You\s+said\s*:|(?:Shirley|You)\s+at\s+\d|End\s+of\s+chat|Connectivity\s+Status)/i;
+  const bm = rest.match(boundary);
+  const block = bm ? rest.slice(0, bm.index).trim() : rest.trim();
+  const cleaned = block ? cleanBotResponse(block) : null;
+
+  if (!cleaned) return null;
+  if (buttonLabels.length === 0) return cleaned;
+  const buttonLine = buttonLabels.map(l => `[ ${l} ]`).join('  ');
+  return `${cleaned}\n\nSuggested actions: ${buttonLine}`;
+}
+
+// Navigate to singtel.com and open the chat widget.
+export async function openChatWidget(page, spin) {
+  spin.update('Navigating to singtel.com...');
+  await page.goto('https://www.singtel.com/', {
+    waitUntil: 'networkidle',
+    timeout: 60000,
+  });
+
+  spin.update('Waiting for page to settle...');
+  await page.waitForTimeout(5000);
+
+  // Dismiss cookie banner if present.
+  try {
+    const cookieClose = page
+      .locator('[aria-label="Close"], button:has-text("x"), [class*="cookie"] button')
+      .first();
+    if (await cookieClose.isVisible()) {
+      await cookieClose.click();
+      await page.waitForTimeout(1000);
+    }
+  } catch (_) {}
+
+  spin.update('Opening chat widget...');
+  const chatBtn = page.locator('.show.fixed-button > .ux-anchor').first();
+  await chatBtn.waitFor({ state: 'visible', timeout: 15000 });
+  await chatBtn.click();
+
+  spin.update('Waiting for chat to load...');
+  await page.waitForTimeout(8000);
+}

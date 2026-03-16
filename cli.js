@@ -16,8 +16,9 @@ function parseArgs(argv) {
     command:   null,
     headed:    false,
     help:      false,
+    agent:     process.env.AGENT ?? 'singtel',
     // simulate
-    name:      'Singtel Chatbot Simulation',
+    name:      'Chatbot Simulation',
     datasetId: process.env.NETRA_DATASET_ID ?? null,
     apiKey:    process.env.NETRA_API_KEY    ?? null,
     // chat
@@ -36,11 +37,11 @@ function parseArgs(argv) {
     const a = args[i];
     switch (a) {
       case 'simulate':
-      case 'chat':
       case 'add-scenarios': opts.command   = a;                        break;
       case '--help':
       case '-h':            opts.help      = true;                     break;
       case '--headed':      opts.headed    = true;                     break;
+      case '--agent':       opts.agent     = args[++i];                break;
       case '--name':        opts.name      = args[++i];                break;
       case '--dataset-id':  opts.datasetId = args[++i];                break;
       case '--api-key':       opts.apiKey       = args[++i];           break;

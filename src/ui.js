@@ -55,7 +55,7 @@ export function spinner(text) {
 export function printBanner() {
   console.log();
   console.log(magenta('  ╔══════════════════════════════════════════════════╗'));
-  console.log(magenta('  ║') + bold('   Singtel Chatbot · Netra Simulation CLI         ') + magenta('║'));
+  console.log(magenta('  ║') + bold('   Browser Chatbot · Netra Simulation CLI         ') + magenta('║'));
   console.log(magenta('  ╚══════════════════════════════════════════════════╝'));
   console.log();
 }
@@ -68,7 +68,7 @@ export function printHelp() {
   log.blank();
 
   console.log(bold('  COMMANDS'));
-  console.log(`    ${yellow('simulate')}       Run Netra simulation against the Singtel chatbot`);
+  console.log(`    ${yellow('simulate')}       Run Netra simulation against a configured chatbot agent`);
   console.log(`    ${yellow('chat')}           Run a standalone multi-turn conversation`);
   console.log(`    ${yellow('add-scenarios')}  Add multi-turn simulation scenarios to a Netra dataset`);
   log.blank();
@@ -79,6 +79,7 @@ export function printHelp() {
   log.blank();
 
   console.log(bold('  SIMULATE OPTIONS'));
+  console.log(`    ${green('--agent')} ${dim('<id>')}     Agent adapter to run ${dim('(default: singtel)')}`);
   console.log(`    ${green('--name')} ${dim('<text>')}     Label for this simulation run`);
   console.log(`    ${green('--dataset-id')} ${dim('<id>')} Override NETRA_DATASET_ID from .env`);
   console.log(`    ${green('--api-key')} ${dim('<key>')}   Override NETRA_API_KEY from .env`);
@@ -102,8 +103,11 @@ export function printHelp() {
   console.log(`    ${dim('# Run Netra simulation using .env credentials')}`);
   console.log(`    ${cyan('node cli.js simulate')}`);
   log.blank();
+  console.log(`    ${dim('# Run simulation against a specific agent adapter')}`);
+  console.log(`    ${cyan('node cli.js simulate --agent singtel')}`);
+  log.blank();
   console.log(`    ${dim('# Simulation with visible browser and custom run name')}`);
-  console.log(`    ${cyan('node cli.js simulate --headed --name "Sprint-42 Regression"')}`);
+  console.log(`    ${cyan('node cli.js simulate --agent singtel --headed --name "Sprint-42 Regression"')}`);
   log.blank();
   console.log(`    ${dim('# Quick 2-message chat')}`);
   console.log(`    ${cyan('node cli.js chat --message "Hi" --message "What are your 5G plans?"')}`);

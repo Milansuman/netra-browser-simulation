@@ -1,12 +1,12 @@
 # netra-browser-simulation
 
-A CLI tool that opens the Singtel chatbot in a real browser and talks to it automatically — either running a full AI-powered simulation via [Netra](https://netra.ai), replaying a conversation script, or seeding a Netra dataset with simulation scenarios.
+A CLI tool that opens a chatbot in a real browser and talks to it automatically — either running a full AI-powered simulation via [Netra](https://netra.ai), replaying a conversation script, or seeding a Netra dataset with simulation scenarios.
 
 ---
 
 ## How it works
 
-The tool launches a browser (invisibly by default), opens the Singtel chat widget, sends messages one by one, and captures the bot's replies.
+The tool launches a browser (invisibly by default), opens the selected agent chat widget, sends messages one by one, and captures the bot's replies.
 
 There are three modes:
 
@@ -52,14 +52,17 @@ node cli.js <command> [options]
 ### `simulate` — run a Netra simulation
 
 ```bash
-# Uses credentials from .env
+# Uses credentials from .env (defaults to --agent singtel)
 node cli.js simulate
 
+# Explicit agent selection
+node cli.js simulate --agent singtel
+
 # With a visible browser window and a custom run label
-node cli.js simulate --headed --name "Sprint-42 Regression"
+node cli.js simulate --agent singtel --headed --name "Sprint-42 Regression"
 
 # Pass credentials inline instead of .env
-node cli.js simulate --api-key <key> --dataset-id <id>
+node cli.js simulate --agent singtel --api-key <key> --dataset-id <id>
 ```
 
 ### `chat` — run a conversation
@@ -118,6 +121,7 @@ The `--scenario-file` option accepts a JSON file containing an array of scenario
 | Flag | Description |
 |---|---|
 | `--headed` | Show the browser window (hidden by default) |
+| `--agent <id>` | Agent adapter to run for `simulate` (default: `singtel`) |
 | `--help`, `-h` | Print usage |
 
 ---
