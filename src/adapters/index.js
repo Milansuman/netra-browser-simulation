@@ -1,8 +1,10 @@
 import { validateBrowserAdapter } from './interface.js';
 import { singtelBrowserAdapter } from '../singtel/adapter.js';
+import { casperBrowserAdapter } from '../casper/adapter.js';
 
 const ADAPTERS = {
   singtel: singtelBrowserAdapter,
+  casper: casperBrowserAdapter,
 };
 
 export function listSupportedAgents() {
