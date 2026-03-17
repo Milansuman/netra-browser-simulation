@@ -4,6 +4,7 @@ import { casperBrowserAdapter } from '../casper/adapter.js';
 import { redfinBrowserAdapter } from '../redfin/adapter.js';
 import { clearBrowserAdapter } from '../clearme/adapter.js';
 import { rocketMortgageBrowserAdapter } from '../rocketmortgage/adapter.js';
+import { scottsMiracleGroBrowserAdapter } from '../scotts-miracle-gro/adapter.js';
 
 const ADAPTERS = {
     singtel: singtelBrowserAdapter,
@@ -11,6 +12,7 @@ const ADAPTERS = {
     redfin: redfinBrowserAdapter,
     clear: clearBrowserAdapter,
     rocketmortgage: rocketMortgageBrowserAdapter,
+    'scotts-miracle-gro': scottsMiracleGroBrowserAdapter,
 };
 
 export function listSupportedAgents() {
